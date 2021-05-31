@@ -4,7 +4,7 @@ import (
 	"image"
 	"os"
 
-	"github.com/Sirupsen/logrus"        // go get -u github.com/Sirupsen/logrus
+	"github.com/sirupsen/logrus"        // go get -u github.com/sirupsen/logrus
 	"github.com/disintegration/imaging" // go get -u github.com/disintegration/imaging
 	"github.com/rwcarlsen/goexif/exif"  // go get -u github.com/rwcarlsen/goexif/exif
 
