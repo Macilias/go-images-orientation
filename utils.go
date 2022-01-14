@@ -1,17 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"image"
-	"os"
 
-	"github.com/sirupsen/logrus"        // go get -u github.com/sirupsen/logrus
 	"github.com/disintegration/imaging" // go get -u github.com/disintegration/imaging
 	"github.com/rwcarlsen/goexif/exif"  // go get -u github.com/rwcarlsen/goexif/exif
+	"github.com/sirupsen/logrus"        // go get -u github.com/sirupsen/logrus
 
+	"bytes"
 	"errors"
-	"image/gif"
-	"image/jpeg"
-	"image/png"
 	"strings"
 )
 
@@ -19,48 +17,24 @@ import (
 // all necessary operation to reverse its orientation to 1
 // The result is a image with corrected orientation and without
 // exif data.
-func ReadImage(fpath string) *image.Image {
-	var img image.Image
+func ReadImage(imgBody []byte) *image.Image {
 	var err error
-	// deal with image
-	ifile, err := os.Open(fpath)
-	if err != nil {
-		logrus.Warnf("could not open file for image transformation: %s", fpath)
-		return nil
-	}
-	defer ifile.Close()
-	filetype, err := GetSuffix(fpath)
-	if err != nil {
-		return nil
-	}
-	if filetype == "jpg" {
-		img, err = jpeg.Decode(ifile)
-		if err != nil {
-			return nil
-		}
-	} else if filetype == "png" {
-		img, err = png.Decode(ifile)
-		if err != nil {
-			return nil
-		}
-	} else if filetype == "gif" {
-		img, err = gif.Decode(ifile)
-		if err != nil {
-			return nil
-		}
-	}
 	// deal with exif
-	efile, err := os.Open(fpath)
 	if err != nil {
 		logrus.Warnf("could not open file for exif decoder: %s", fpath)
 	}
-	defer efile.Close()
-	x, err := exif.Decode(efile)
+	imgBodyReader := bytes.NewReader(imgBody)
+	img, imgExtension, err := image.Decode(imgBodyReader)
+	if imgExtension != "png" && imgExtension != "jpg" && imgExtension != "gif" {
+		fmt.Printf("image type %s has no exif to check for orientation", imgExtension)
+		return &imgBody
+	}
+	x, err := exif.Decode(imgBodyReader)
 	if err != nil {
 		if x == nil {
 			// ignore - image exif data has been already stripped
 		}
-		logrus.Errorf("failed reading exif data in [%s]: %s", fpath, err.Error())
+		logrus.Errorf("failed reading exif data: %s", err.Error())
 	}
 	if x != nil {
 		orient, _ := x.Get(exif.Orientation)
