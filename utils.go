@@ -38,7 +38,7 @@ func ReadImage(imgBody []byte) []byte {
 	if x != nil {
 		orient, _ := x.Get(exif.Orientation)
 		if orient != nil {
-			if orient == 1 {
+			if orient.String() == "1" {
 				fmt.Printf("image already has correct orientation, no further exif manipulation is needed")
 				return imgBody
 			}
