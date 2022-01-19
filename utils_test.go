@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"io/ioutil"
 
 	"github.com/sirupsen/logrus"
 )
@@ -52,9 +53,16 @@ func TestFnone(t *testing.T) {
 }
 
 func getImageFromFilePath(filePath string) ([]byte, error) {
-	f, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, err
-	}
-	return f, err
+	file, err := os.Open("file.txt")
+    	if err != nil {
+        	log.Fatal(err)
+    	}
+    	defer func() {
+        	if err = file.Close(); err != nil {
+            		log.Fatal(err)
+        }
+    	}()
+
+  	b, err := ioutil.ReadAll(file)
+	return b, err
 }
