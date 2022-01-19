@@ -17,7 +17,7 @@ import (
 // all necessary operation to reverse its orientation to 1
 // The result is a image with corrected orientation and without
 // exif data.
-func ReadImage(imgBody []byte, logger *logrus.Entry) []byte {
+func ReadImage(imgBody []byte, logger *logrus.Entry) (imgReturned []byte, imgOrientation string) {
 	imgBodyReader := bytes.NewReader(imgBody)
 	// deal with exif
 	img, imgExtension, err := image.Decode(imgBodyReader)
@@ -26,13 +26,13 @@ func ReadImage(imgBody []byte, logger *logrus.Entry) []byte {
 	}
 	if imgExtension != "png" && imgExtension != "jpg" && imgExtension != "jpeg" && imgExtension != "gif" {
 		logger.Infof("image type %s has no exif to check for orientation", imgExtension)
-		return imgBody
+		return imgBody, "none"
 	}
 	x, err := exif.Decode(imgBodyReader)
 	if err != nil {
 		if x == nil {
 			logger.Infof("image has no exif data, no further exif manipulation is needed")
-			return imgBody
+			return imgBody, "none"
 		}
 		logger.Errorf("failed reading exif data: %s", err.Error())
 	}
@@ -40,10 +40,11 @@ func ReadImage(imgBody []byte, logger *logrus.Entry) []byte {
 		orient, _ := x.Get(exif.Orientation)
 		if orient != nil {
 			if orient.String() == "1" {
-				logger.Infof("image already has correct orientation, no further exif manipulation is needed")
-				return imgBody
+				logger.Infof("image already has correct orientation %s, no further exif manipulation is needed", orient)
+				return imgBody, "1"
 			}
 			logger.Infof("image had orientation %s", orient.String())
+
 			img = reverseOrientation(img, orient.String(), logger)
 			switch imgExtension {
 			case "png":
@@ -53,7 +54,7 @@ func ReadImage(imgBody []byte, logger *logrus.Entry) []byte {
 					logger.Errorf("error while encoding corrected image: %s", err)
 				}
 				imgBody = buffer.Bytes()
-				return imgBody
+				return imgBody, "none"
 			case "gif":
 				buffer := new(bytes.Buffer)
 				err := gif.Encode(buffer, img, nil)
@@ -61,7 +62,7 @@ func ReadImage(imgBody []byte, logger *logrus.Entry) []byte {
 					logger.Errorf("error while encoding corrected image: %s", err)
 				}
 				imgBody = buffer.Bytes()
-				return imgBody
+				return imgBody, "none"
 			case "jpeg", "jpg":
 				buffer := new(bytes.Buffer)
 				err := jpeg.Encode(buffer, img, nil)
@@ -69,14 +70,14 @@ func ReadImage(imgBody []byte, logger *logrus.Entry) []byte {
 					logger.Errorf("error while encoding corrected image: %s", err)
 				}
 				imgBody = buffer.Bytes()
-				return imgBody
+				return imgBody, "none"
 			}
 		} else {
 			logger.Infof("image has no orientation data - implying 1, no further exif manipulation is needed")
-			return imgBody
+			return imgBody, "none"
 		}
 	}
-	return imgBody
+	return imgBody, "none"
 }
 
 // reverseOrientation amply`s what ever operation is necessary to transform given orientation
