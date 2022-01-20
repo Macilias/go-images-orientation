@@ -10,3 +10,6 @@ Jewtbrains goland stuff
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
 /.idea/vcs.xml
+
+#test output
+f3_after_tests.jpg
