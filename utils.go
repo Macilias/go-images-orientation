@@ -31,7 +31,7 @@ func ReadImage(imgBody []byte, logger *logrus.Entry) (imgReturned []byte, imgOri
 	x, err := exif.Decode(imgBodyReader)
 	if err != nil {
 		if x == nil {
-			logger.Infof("image has no exif data, no further exif manipulation is needed")
+			logger.Warningf("Unable to read exif data, might imply that orientation is correct and no manipulation is needed, error found: %s", err)
 			return imgBody, "none"
 		}
 		logger.Errorf("failed reading exif data: %s", err.Error())
