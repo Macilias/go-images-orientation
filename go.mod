@@ -1,4 +1,4 @@
-module orientation
+module github.com/olxbr/go-images-orientation
 
 go 1.17
 
