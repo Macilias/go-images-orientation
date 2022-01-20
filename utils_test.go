@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+//This test should output the same image stripped out of exif data, can be checked on https://www.thexifer.net/ if needed
 func TestF3(t *testing.T) {
 	F3Img, err := getImageFromFilePath("./TestImages/F-3.jpg")
 	if err != nil {

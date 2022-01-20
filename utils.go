@@ -5,6 +5,7 @@ import (
 	"image/gif"
 	"image/jpeg"
 	"image/png"
+	"strings"
 
 	"github.com/disintegration/imaging" // go get -u github.com/disintegration/imaging
 	"github.com/rwcarlsen/goexif/exif"  // go get -u github.com/rwcarlsen/goexif/exif
@@ -17,8 +18,9 @@ import (
 // all necessary operation to reverse its orientation to 1
 // The result is a image with corrected orientation and without
 // exif data.
-func ReadImage(imgBody []byte, logger *logrus.Entry) (imgReturned []byte, imgOrientation string) {
+func ReadImage(imgBody []byte, logger *logrus.Entry) ([]byte, string) {
 	imgBodyReader := bytes.NewReader(imgBody)
+
 	// deal with exif
 	img, imgExtension, err := image.Decode(imgBodyReader)
 	if err != nil {
@@ -28,7 +30,9 @@ func ReadImage(imgBody []byte, logger *logrus.Entry) (imgReturned []byte, imgOri
 		logger.Infof("image type %s has no exif to check for orientation", imgExtension)
 		return imgBody, "none"
 	}
-	x, err := exif.Decode(imgBodyReader)
+	//dont know why, but exif needs this "hack" to decode properly sometimes
+	imgBodyStringReader := strings.NewReader(string(imgBody))
+	x, err := exif.Decode(imgBodyStringReader)
 	if err != nil {
 		if x == nil {
 			logger.Warningf("Unable to read exif data, might imply that orientation is correct and no manipulation is needed, error found: %s", err)
