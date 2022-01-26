@@ -3,8 +3,10 @@ package orientation
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
+	"github.com/rwcarlsen/goexif/exif"
 	"github.com/sirupsen/logrus"
 )
 
@@ -14,9 +16,9 @@ func TestF3(t *testing.T) {
 	if err != nil {
 		fmt.Printf("error: %s", err)
 	}
-	imgToSaveBytes, orientation := ReadImage(F3Img, logrus.NewEntry(logrus.StandardLogger()))
+	newimg, orientation := ReadImage(F3Img, logrus.NewEntry(logrus.StandardLogger()))
 
-	os.WriteFile("./TestImages/f3_after_tests.jpg", imgToSaveBytes, os.ModeDevice.Perm())
+	os.WriteFile("./TestImages/f3_after_tests.jpg", newimg, os.ModeDevice.Perm())
 	if orientation == "none" {
 		t.Logf("test F3 passed with orientation %s", orientation)
 		return
@@ -30,8 +32,19 @@ func TestF1(t *testing.T) {
 	if err != nil {
 		fmt.Printf("error: %s", err)
 	}
-	_, orientation := ReadImage(F1Img, logrus.NewEntry(logrus.StandardLogger()))
+	newimg, orientation := ReadImage(F1Img, logrus.NewEntry(logrus.StandardLogger()))
 
+	imgBodyStringReader := strings.NewReader(string(newimg))
+	x, err := exif.Decode(imgBodyStringReader)
+	if err != nil {
+		t.Errorf("error: %s", err)
+	}
+	if x != nil {
+		exiforientation, _ := x.Get(exif.Orientation)
+		if exiforientation.String() != "1" {
+			t.Errorf("Expected to read orientation 1, found %s", exiforientation)
+		}
+	}
 	if orientation == "1" {
 		return
 	}
@@ -43,13 +56,24 @@ func TestFnone(t *testing.T) {
 	if err != nil {
 		fmt.Printf("error: %s", err)
 	}
-	_, orientation := ReadImage(FnoneImg, logrus.NewEntry(logrus.StandardLogger()))
+	newimg, orientation := ReadImage(FnoneImg, logrus.NewEntry(logrus.StandardLogger()))
 
-	if orientation == "none" {
-		t.Logf("test Fnone passed with orientation %s", orientation)
-		return
+	imgBodyStringReader := strings.NewReader(string(newimg))
+	x, err := exif.Decode(imgBodyStringReader)
+	if err != nil {
+		t.Errorf("error: %s", err)
 	}
-	t.Errorf("Expected no orientation, found: %s", orientation)
+
+	exiforientation, _ := x.Get(exif.Orientation)
+	if exiforientation != nil {
+		t.Errorf("unexpected orientation found: %v", exiforientation)
+	}
+
+	if orientation != "none" {
+		t.Errorf("Expected no orientation, found: %s", orientation)
+	}
+	t.Logf("test Fnone passed with orientation %s", orientation)
+	return
 }
 
 func getImageFromFilePath(filePath string) ([]byte, error) {

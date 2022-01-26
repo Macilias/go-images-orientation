@@ -15,10 +15,11 @@ import (
 )
 
 // ReadImage makes a copy of image (jpg,png or gif) and applies
-// all necessary operation to reverse its orientation to 1
+// all necessary operation to reverse its orientation to 1 or none
 // The result is a image with corrected orientation and without
 // exif data.
-func ReadImage(imgBody []byte, logger *logrus.Entry) ([]byte, string) {
+// will also return orientation "1" or "none"
+func ReadImage(imgBody []byte, logger *logrus.Entry) (imagebody []byte, orientation string) {
 	imgBodyReader := bytes.NewReader(imgBody)
 
 	// deal with exif
