@@ -44,9 +44,9 @@ func ReadImage(imgBody []byte, logger *logrus.Entry) (imagebody []byte, orientat
 	if x != nil {
 		orient, _ := x.Get(exif.Orientation)
 		if orient != nil {
-			if orient.String() == "1" {
+			if orient.String() == "1" || orient.String() == "0" {
 				logger.Infof("image already has correct orientation %s, no further exif manipulation is needed", orient)
-				return imgBody, "1"
+				return imgBody, orient.String()
 			}
 			logger.Infof("image had orientation %s", orient.String())
 
