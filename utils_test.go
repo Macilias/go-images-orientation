@@ -16,7 +16,7 @@ func TestF3(t *testing.T) {
 	if err != nil {
 		fmt.Printf("error: %s", err)
 	}
-	newimg, orientation := ReadImage(F3Img, logrus.NewEntry(logrus.StandardLogger()))
+	newimg, orientation := ReadImage(F3Img, logrus.NewEntry(logrus.StandardLogger()), "whateverID1")
 
 	os.WriteFile("./TestImages/f3_after_tests.jpg", newimg, os.ModeDevice.Perm())
 	if orientation == "none" {
@@ -32,7 +32,7 @@ func TestF1(t *testing.T) {
 	if err != nil {
 		fmt.Printf("error: %s", err)
 	}
-	newimg, orientation := ReadImage(F1Img, logrus.NewEntry(logrus.StandardLogger()))
+	newimg, orientation := ReadImage(F1Img, logrus.NewEntry(logrus.StandardLogger()), "whateverID2")
 
 	imgBodyStringReader := strings.NewReader(string(newimg))
 	x, err := exif.Decode(imgBodyStringReader)
@@ -56,7 +56,7 @@ func TestFnone(t *testing.T) {
 	if err != nil {
 		fmt.Printf("error: %s", err)
 	}
-	newimg, orientation := ReadImage(FnoneImg, logrus.NewEntry(logrus.StandardLogger()))
+	newimg, orientation := ReadImage(FnoneImg, logrus.NewEntry(logrus.StandardLogger()), "whateverID3")
 
 	imgBodyStringReader := strings.NewReader(string(newimg))
 	x, err := exif.Decode(imgBodyStringReader)
@@ -73,7 +73,6 @@ func TestFnone(t *testing.T) {
 		t.Errorf("Expected no orientation, found: %s", orientation)
 	}
 	t.Logf("test Fnone passed with orientation %s", orientation)
-	return
 }
 
 func getImageFromFilePath(filePath string) ([]byte, error) {
